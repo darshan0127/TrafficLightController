@@ -1,0 +1,162 @@
+﻿@{
+    ViewData["Title"] = "Traffic Light Simulation with Ambulance Priority";
+}
+
+<h2 class="text-center">Traffic Light Simulation with Ambulance Priority</h2>
+
+<!-- Traffic Lights Layout -->
+<div class="container text-center">
+    <div class="row justify-content-center mb-3">
+        <!-- B Light and Amb B Button -->
+        <div class="col-auto">
+            <div id="B" class="light-circle">B</div>
+            <button id="ambB-btn" class="btn btn-warning amb-btn mt-2">Amb B</button>
+        </div>
+    </div>
+    <div class="row justify-content-between">
+        <!-- A Light and Amb A Button -->
+        <div class="col-auto">
+            <div id="A" class="light-circle">A</div>
+            <button id="ambA-btn" class="btn btn-warning amb-btn mt-2">Amb A</button>
+        </div>
+        <!-- C Light and Amb C Button -->
+        <div class="col-auto">
+            <div id="C" class="light-circle">C</div>
+            <button id="ambC-btn" class="btn btn-warning amb-btn mt-2">Amb C</button>
+        </div>
+    </div>
+    <div class="row justify-content-center mt-3">
+        <!-- D Light and Amb D Button -->
+        <div class="col-auto">
+            <div id="D" class="light-circle">D</div>
+            <button id="ambD-btn" class="btn btn-warning amb-btn mt-2">Amb D</button>
+        </div>
+    </div>
+</div>
+
+<!-- Control Buttons for Start and Stop -->
+<div class="text-center mt-4">
+    <button id="start-btn" class="btn btn-success me-2">Start</button>
+    <button id="stop-btn" class="btn btn-danger me-2">Stop</button>
+</div>
+
+@section Styles {
+    <style>
+        .light-circle {
+            width: 80px;
+            height: 80px;
+            background-color: grey;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .amb-btn {
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .btn {
+            margin-top: 10px;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        var interval;
+        var currentLight = 0;
+        var lights = ["A", "B", "C", "D"];
+        var ambulanceActive = false;
+        var ambulanceInterval;
+        var ambButtons = ["ambA-btn", "ambB-btn", "ambC-btn", "ambD-btn"];
+        var currentAmb = 0;
+
+        // Function to change red traffic lights in the regular cycle
+        function changeLight() {
+            if (ambulanceActive) return;  // Skip red light changes if ambulance is active
+
+            lights.forEach(function (light) {
+                document.getElementById(light).style.backgroundColor = 'grey';
+            });
+
+            // Set the current traffic light to red
+            document.getElementById(lights[currentLight]).style.backgroundColor = 'red';
+            currentLight = (currentLight + 1) % lights.length;
+        }
+
+        // Start the normal traffic light sequence
+        document.getElementById('start-btn').addEventListener('click', function () {
+            if (!interval || ambulanceActive) {
+                clearInterval(ambulanceInterval);  // Stop ambulance blue lights if running
+                ambulanceActive = false;  // Reset ambulance state
+                ambButtons.forEach(function (amb) {
+                    document.getElementById(amb).style.backgroundColor = 'orange';  // Reset ambulance buttons
+                });
+
+                changeLight();  // Start red lights cycle
+                interval = setInterval(changeLight, 3000); // Cycle every 3 seconds
+            }
+        });
+
+        // Stop all lights and reset
+        document.getElementById('stop-btn').addEventListener('click', function () {
+            clearInterval(interval);
+            clearInterval(ambulanceInterval);
+            interval = null;
+            ambulanceActive = false;
+            lights.forEach(function (light) {
+                document.getElementById(light).style.backgroundColor = 'grey';
+            });
+            ambButtons.forEach(function (amb) {
+                document.getElementById(amb).style.backgroundColor = 'orange';
+            });
+        });
+
+        // Function to activate blue ambulance light on buttons
+        function activateAmbulancePriority(ambId) {
+            ambulanceActive = true;  // Set ambulance priority active
+            clearInterval(interval);  // Stop the regular red light cycle
+            currentAmb = ambButtons.indexOf(ambId);
+
+            // Function to shift ambulance blue lights across buttons
+            function shiftAmbulanceLights() {
+                ambButtons.forEach(function (amb) {
+                    document.getElementById(amb).style.backgroundColor = 'orange';  // Reset all buttons
+                });
+                document.getElementById(ambButtons[currentAmb]).style.backgroundColor = 'blue';  // Set current button to blue
+                currentAmb = (currentAmb + 1) % ambButtons.length;  // Move to next button
+            }
+
+            // Start with the selected ambulance button (5-second intervals)
+            shiftAmbulanceLights();
+            ambulanceInterval = setInterval(shiftAmbulanceLights, 5000);  // Switch to the next button every 5 seconds
+        }
+
+        // Handle ambulance button clicks
+        document.getElementById('ambA-btn').addEventListener('click', function () {
+            activateAmbulancePriority('ambA-btn');
+        });
+
+        document.getElementById('ambB-btn').addEventListener('click', function () {
+            activateAmbulancePriority('ambB-btn');
+        });
+
+        document.getElementById('ambC-btn').addEventListener('click', function () {
+            activateAmbulancePriority('ambC-btn');
+        });
+
+        document.getElementById('ambD-btn').addEventListener('click', function () {
+            activateAmbulancePriority('ambD-btn');
+        });
+    </script>
+}
